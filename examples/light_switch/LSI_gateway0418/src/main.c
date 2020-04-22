@@ -167,6 +167,27 @@ static void app_throughput_client_status_cb(const throughput_client_t * p_self,
                                                const throughput_status_params_t * p_in)
 {
     __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "throughput client: 0x%04x\n", p_meta->src.value);
+    
+      __LOG(LOG_SRC_APP, LOG_LEVEL_INFO,"replay statu: cmd: 0x%02x  param: 0x%02x\n",  p_in->cmd,p_in->params);
+
+    uint8_t uart_data[255] = {0};
+    uint16_t dest_addr = p_meta->dst.value;
+    uint16_t source_addr = p_meta->src.value;
+    uint16_t lenth =  2 + 2; // 2 = the length of opcode
+    uint16_t opcode = 0x00d9;  // THROUGHPUT_STATUS
+    uart_data[0] = TYPE_MESSAGE;
+
+     memcpy(uart_data +DEST_ADDR_INDEX,(uint8_t*)&dest_addr,sizeof(dest_addr) );
+           memcpy(uart_data +SOURCE_ADDR_INDEX,(uint8_t*)&source_addr,sizeof(source_addr) );
+           memcpy(uart_data +DATA_LENGTH_INDEX,(uint8_t*)&lenth,sizeof(lenth) );
+           memcpy(uart_data +DATA_OPCODE_INDEX,(uint8_t*)&opcode,sizeof(opcode) );
+
+           memcpy(uart_data+DATA_PARAMS_INDEX,(uint8_t*)&p_in->cmd,2);
+
+          __LOG(LOG_SRC_APP, LOG_LEVEL_INFO, "uart data lenth: 0x%04x\n", lenth);
+          __LOG_XB(LOG_SRC_APP, LOG_LEVEL_INFO, "uart data",uart_data, lenth+7); // 7 = type + dst +src +len
+   
+          app_uart_string_put((uint8_t *)&uart_data, lenth+7);
 
 }
 
